@@ -1,9 +1,9 @@
 // lib.rs
 
-#[macro_use] extern crate vst2;
+#[macro_use] extern crate vst;
 
-use vst2::buffer::AudioBuffer;
-use vst2::plugin::{Plugin, Info};
+use vst::buffer::AudioBuffer;
+use vst::plugin::{Plugin, Info};
 
 struct DigiDist {
     threshold: f32,
@@ -72,13 +72,13 @@ impl Plugin for DigiDist {
         }
     }
 
-    fn process(&mut self, buffer: AudioBuffer<f32>) {
+    fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
         // Split out the input and output buffers into two vectors
         let (inputs, outputs) = buffer.split();
 
         // For each buffer, transform the samples
-        for (input_buffer, output_buffer) in inputs.iter().zip(outputs) {
-            for (input_sample, output_sample) in input_buffer.iter().zip(output_buffer) {
+        for (input_buffer, output_buffer) in inputs.into_iter().zip(outputs.into_iter()) {
+            for (input_sample, output_sample) in input_buffer.into_iter().zip(output_buffer.into_iter()) {
 
                 self.active_threshold += 0.0001 * (self.threshold - self.active_threshold);
 
