@@ -1,4 +1,5 @@
 [workspace]
 members = [
-    "effect/digidist"
+    "effect/digidist",
+    "instrument/monosine",
 ]

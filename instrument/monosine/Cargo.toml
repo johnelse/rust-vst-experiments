@@ -1,0 +1,10 @@
+[package]
+name = "monosine"
+version = "0.1.0"
+authors = ["John Else <john.else@gmail.com>"]
+
+[dependencies]
+vst = "0.0.1"
+
+[lib]
+crate-type = ["dylib"]
