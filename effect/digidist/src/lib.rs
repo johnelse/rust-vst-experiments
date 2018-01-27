@@ -3,7 +3,7 @@
 #[macro_use] extern crate vst;
 
 use vst::buffer::AudioBuffer;
-use vst::plugin::{Plugin, Info};
+use vst::plugin::{Info, Plugin};
 
 struct DigiDist {
     threshold: f32,

@@ -3,7 +3,7 @@
 #[macro_use] extern crate vst;
 
 use vst::buffer::AudioBuffer;
-use vst::plugin::{Category, Plugin, Info};
+use vst::plugin::{Category, Info, Plugin};
 
 struct MonoSine {
     frequency: f32,
