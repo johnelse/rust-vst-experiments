@@ -7,14 +7,20 @@ use vst::plugin::{Category, Plugin, Info};
 
 struct MonoSine {
     frequency: f32,
-    level: f32
+    level: f32,
+    theta: f32,
+    sample_rate: f32,
 }
+
+pub const TAU: f32 = std::f32::consts::PI * 2.0;
 
 impl Default for MonoSine {
     fn default() -> MonoSine {
         MonoSine {
             frequency: 440.0,
-            level: 1.0
+            level: 1.0,
+            theta: 0.0,
+            sample_rate: 44100.0,
         }
     }
 }
@@ -66,11 +72,29 @@ impl Plugin for MonoSine {
         }
     }
 
-    fn get_parameter_label(&self, index: i32) -> String {
+    fn get_parameter_label(&self, _: i32) -> String {
         "".to_string()
     }
 
+    fn set_sample_rate(&mut self, rate: f32) {
+        self.sample_rate = rate;
+    }
+
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
+        let samples = buffer.samples();
+        let (_, outputs) = buffer.split();
+
+        for output_buffer in outputs {
+            let mut theta = self.theta;
+
+            for output_sample in output_buffer {
+
+                *output_sample = theta.sin() * self.level;
+                theta += TAU * self.frequency / self.sample_rate;
+            }
+        }
+
+        self.theta += samples as f32 *  TAU * self.frequency / self.sample_rate;
     }
 }
 
