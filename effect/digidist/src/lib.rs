@@ -73,12 +73,9 @@ impl Plugin for DigiDist {
     }
 
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
-        // Split out the input and output buffers into two vectors
-        let (inputs, outputs) = buffer.split();
-
         // For each buffer, transform the samples
-        for (input_buffer, output_buffer) in inputs.into_iter().zip(outputs.into_iter()) {
-            for (input_sample, output_sample) in input_buffer.into_iter().zip(output_buffer.into_iter()) {
+        for (input_buffer, output_buffer) in buffer.zip() {
+            for (input_sample, output_sample) in input_buffer.iter().zip(output_buffer) {
 
                 self.active_threshold += 0.0001 * (self.threshold - self.active_threshold);
 
