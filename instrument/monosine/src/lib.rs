@@ -137,7 +137,7 @@ impl Plugin for MonoSine {
                     }
                 }
 
-                self.theta += samples as f32 *  TAU * self.frequency / self.sample_rate;
+                self.theta += samples as f32 * TAU * self.frequency / self.sample_rate;
             }
             None => (),
         }
