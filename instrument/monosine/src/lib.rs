@@ -118,26 +118,23 @@ impl Plugin for MonoSine {
     }
 
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
-        match self.note {
-            Some(note) => {
-                let frequency = midi_pitch_to_freq(note);
+        if let Some(note) = self.note {
+            let frequency = midi_pitch_to_freq(note);
 
-                let samples = buffer.samples();
-                let (_, outputs) = buffer.split();
+            let samples = buffer.samples();
+            let (_, outputs) = buffer.split();
 
-                for output_buffer in outputs {
-                    let mut theta = self.theta;
+            for output_buffer in outputs {
+                let mut theta = self.theta;
 
-                    for output_sample in output_buffer {
+                for output_sample in output_buffer {
 
-                        *output_sample = theta.sin() * self.level;
-                        theta += TAU * frequency / self.sample_rate;
-                    }
+                    *output_sample = theta.sin() * self.level;
+                    theta += TAU * frequency / self.sample_rate;
                 }
-
-                self.theta += samples as f32 * TAU * frequency / self.sample_rate;
             }
-            None => (),
+
+            self.theta += samples as f32 * TAU * frequency / self.sample_rate;
         }
     }
 
