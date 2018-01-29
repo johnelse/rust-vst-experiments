@@ -8,7 +8,6 @@ use vst::event::Event;
 use vst::plugin::{Category, CanDo, Info, Plugin};
 
 struct MonoSine {
-    frequency: f32,
     level: f32,
     theta: f32,
     sample_rate: f32,
@@ -48,7 +47,6 @@ impl MonoSine {
 impl Default for MonoSine {
     fn default() -> MonoSine {
         MonoSine {
-            frequency: 440.0,
             level: 1.0,
             theta: 0.0,
             sample_rate: 44100.0,
@@ -122,7 +120,7 @@ impl Plugin for MonoSine {
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
         match self.note {
             Some(note) => {
-                self.frequency = midi_pitch_to_freq(note);
+                let frequency = midi_pitch_to_freq(note);
 
                 let samples = buffer.samples();
                 let (_, outputs) = buffer.split();
@@ -133,11 +131,11 @@ impl Plugin for MonoSine {
                     for output_sample in output_buffer {
 
                         *output_sample = theta.sin() * self.level;
-                        theta += TAU * self.frequency / self.sample_rate;
+                        theta += TAU * frequency / self.sample_rate;
                     }
                 }
 
-                self.theta += samples as f32 * TAU * self.frequency / self.sample_rate;
+                self.theta += samples as f32 * TAU * frequency / self.sample_rate;
             }
             None => (),
         }
