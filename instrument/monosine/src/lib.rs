@@ -8,20 +8,20 @@ use vst::event::Event;
 use vst::plugin::{Category, CanDo, Info, Plugin};
 
 struct MonoSine {
-    level: f32,
-    theta: f32,
-    sample_rate: f32,
+    level: f64,
+    theta: f64,
+    sample_rate: f64,
     note: Option<u8>,
 }
 
-pub const TAU: f32 = std::f32::consts::PI * 2.0;
+pub const TAU: f64 = std::f64::consts::PI * 2.0;
 
-fn midi_pitch_to_freq(pitch: u8) -> f32 {
+fn midi_pitch_to_freq(pitch: u8) -> f64 {
     const A4_PITCH: i8 = 69;
-    const A4_FREQ: f32 = 440.0;
+    const A4_FREQ: f64 = 440.0;
 
     // Midi notes can be 0-127
-    ((f32::from(pitch as i8 - A4_PITCH)) / 12.).exp2() * A4_FREQ
+    ((f64::from(pitch as i8 - A4_PITCH)) / 12.).exp2() * A4_FREQ
 }
 
 impl MonoSine {
@@ -82,14 +82,14 @@ impl Plugin for MonoSine {
 
     fn get_parameter(&self, index: i32) -> f32 {
         match index {
-            0 => self.level,
+            0 => self.level as f32,
             _ => 0.0,
         }
     }
 
     fn set_parameter(&mut self, index: i32, value: f32) {
         match index {
-            0 => self.level = value,
+            0 => self.level = value as f64,
             _ => (),
         }
     }
@@ -114,7 +114,7 @@ impl Plugin for MonoSine {
     }
 
     fn set_sample_rate(&mut self, rate: f32) {
-        self.sample_rate = rate;
+        self.sample_rate = rate as f64;
     }
 
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
@@ -129,12 +129,12 @@ impl Plugin for MonoSine {
 
                 for output_sample in output_buffer {
 
-                    *output_sample = theta.sin() * self.level;
+                    *output_sample = (theta.sin() * self.level) as f32;
                     theta += TAU * frequency / self.sample_rate;
                 }
             }
 
-            self.theta += samples as f32 * TAU * frequency / self.sample_rate;
+            self.theta += samples as f64 * TAU * frequency / self.sample_rate;
         }
     }
 
