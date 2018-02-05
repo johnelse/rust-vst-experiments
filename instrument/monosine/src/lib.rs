@@ -9,12 +9,17 @@ use vst::plugin::{Category, CanDo, Info, Plugin};
 
 struct MonoSine {
     level: f64,
+    target_velocity: f64,
+    velocity: f64,
     theta: f64,
     sample_rate: f64,
     note: Option<u8>,
+    frequency: f64,
 }
 
 pub const TAU: f64 = std::f64::consts::PI * 2.0;
+pub const ATTACK: f64 = 0.1;
+pub const DECAY: f64 = 0.1;
 
 fn midi_pitch_to_freq(pitch: u8) -> f64 {
     const A4_PITCH: i8 = 69;
@@ -35,6 +40,7 @@ impl MonoSine {
 
     fn note_on(&mut self, note: u8) {
         self.note = Some(note);
+        self.target_velocity = 1.0;
     }
 
     fn note_off(&mut self, note: u8) {
@@ -48,9 +54,12 @@ impl Default for MonoSine {
     fn default() -> MonoSine {
         MonoSine {
             level: 1.0,
+            velocity: 0.0,
+            target_velocity: 0.0,
             theta: 0.0,
             sample_rate: 44100.0,
             note: None,
+            frequency: 440.0,
         }
     }
 }
@@ -118,23 +127,52 @@ impl Plugin for MonoSine {
     }
 
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
-        if let Some(note) = self.note {
-            let frequency = midi_pitch_to_freq(note);
+        let time_per_sample = 1.0 / self.sample_rate;
+
+        if self.velocity > 0.0 || self.note != None {
+            if let Some(note) = self.note {
+                self.frequency = midi_pitch_to_freq(note);
+            }
 
             let samples = buffer.samples();
             let (_, outputs) = buffer.split();
 
             for output_buffer in outputs {
                 let mut theta = self.theta;
+                let mut velocity = self.velocity;
 
                 for output_sample in output_buffer {
+                    if None == self.note {
+                        if velocity > 0.0 {
+                            velocity -=
+                                self.target_velocity * time_per_sample / DECAY;
+                        }
+                    }
+                    else {
+                        if velocity < self.target_velocity {
+                            velocity +=
+                                self.target_velocity * time_per_sample / ATTACK;
+                        }
+                    }
 
-                    *output_sample = (theta.sin() * self.level) as f32;
-                    theta += TAU * frequency / self.sample_rate;
+                    *output_sample = (theta.sin() * self.level * velocity) as f32;
+                    theta += TAU * self.frequency / self.sample_rate;
                 }
             }
 
-            self.theta += samples as f64 * TAU * frequency / self.sample_rate;
+            if None == self.note {
+                self.velocity -= self.target_velocity * samples as f64 * time_per_sample / DECAY;
+                if self.velocity < 0.0 {
+                    self.velocity = 0.0;
+                }
+            } else {
+                self.velocity += self.target_velocity * samples as f64 * time_per_sample / ATTACK;
+                if self.velocity > self.target_velocity {
+                    self.velocity = self.target_velocity;
+                }
+            }
+
+            self.theta += samples as f64 * TAU * self.frequency / self.sample_rate;
         }
     }
 
