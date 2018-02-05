@@ -137,42 +137,29 @@ impl Plugin for MonoSine {
             let samples = buffer.samples();
             let (_, outputs) = buffer.split();
 
-            for output_buffer in outputs {
-                let mut theta = self.theta;
-                let mut velocity = self.velocity;
-
-                for output_sample in output_buffer {
-                    if None == self.note {
-                        if velocity > 0.0 {
-                            velocity -=
-                                self.target_velocity * time_per_sample / DECAY;
-                        }
+            for sample_index in 0..samples {
+                if None == self.note {
+                    if self.velocity > 0.0 {
+                        self.velocity -=
+                            self.target_velocity * time_per_sample / DECAY;
                     }
-                    else {
-                        if velocity < self.target_velocity {
-                            velocity +=
-                                self.target_velocity * time_per_sample / ATTACK;
-                        }
-                    }
-
-                    *output_sample = (theta.sin() * self.level * velocity) as f32;
-                    theta += TAU * self.frequency / self.sample_rate;
                 }
+                else {
+                    if self.velocity < self.target_velocity {
+                        self.velocity +=
+                            self.target_velocity * time_per_sample / ATTACK;
+                    }
+                }
+
+                for output_buffer in outputs {
+                    if let Some(output_sample) = output_buffer.get_mut(sample_index) {
+                        *output_sample = (self.theta.sin() * self.level * self.velocity) as f32;
+                    }
+                }
+
+                self.theta += TAU * self.frequency / self.sample_rate;
             }
 
-            if None == self.note {
-                self.velocity -= self.target_velocity * samples as f64 * time_per_sample / DECAY;
-                if self.velocity < 0.0 {
-                    self.velocity = 0.0;
-                }
-            } else {
-                self.velocity += self.target_velocity * samples as f64 * time_per_sample / ATTACK;
-                if self.velocity > self.target_velocity {
-                    self.velocity = self.target_velocity;
-                }
-            }
-
-            self.theta += samples as f64 * TAU * self.frequency / self.sample_rate;
         }
     }
 
