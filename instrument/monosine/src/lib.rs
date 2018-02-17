@@ -34,14 +34,14 @@ impl MonoSine {
     fn process_midi_event(&mut self, data: [u8; 3]) {
         match data[0] {
             128 => self.note_off(data[1]),
-            144 => self.note_on(data[1]),
+            144 => self.note_on(data[1], data[2]),
             _ => (),
         }
     }
 
-    fn note_on(&mut self, note: u8) {
+    fn note_on(&mut self, note: u8, velocity: u8) {
         self.note = Some(note);
-        self.target_velocity = 1.0;
+        self.target_velocity = velocity as f64 / 127.0;
     }
 
     fn note_off(&mut self, note: u8) {
