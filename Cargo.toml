@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "lib/generator",
     "effect/digidist",
     "instrument/monosine",
 ]

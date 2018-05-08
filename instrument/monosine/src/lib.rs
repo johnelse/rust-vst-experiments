@@ -1,6 +1,9 @@
 // lib.rs
 
+extern crate generator;
 #[macro_use] extern crate vst;
+
+use generator::{Generator, Oscillator};
 
 use vst::api::{Events, Supported};
 use vst::buffer::AudioBuffer;
@@ -12,13 +15,10 @@ struct MonoSine {
     level: f64,
     target_velocity: f64,
     velocity: f64,
-    theta: f64,
-    sample_rate: f64,
     note: Option<u8>,
-    frequency: f64,
+    oscillator: Oscillator,
 }
 
-pub const TAU: f64 = std::f64::consts::PI * 2.0;
 pub const ATTACK: f64 = 0.1;
 pub const DECAY: f64 = 0.1;
 
@@ -58,10 +58,8 @@ impl Default for MonoSine {
             level: 1.0,
             velocity: 0.0,
             target_velocity: 0.0,
-            theta: 0.0,
-            sample_rate: 44100.0,
             note: None,
-            frequency: 440.0,
+            oscillator: Oscillator::sine(44100.0),
         }
     }
 }
@@ -125,15 +123,15 @@ impl Plugin for MonoSine {
     }
 
     fn set_sample_rate(&mut self, rate: f32) {
-        self.sample_rate = rate as f64;
+        self.oscillator.set_sample_rate(rate as f64);
     }
 
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
-        let time_per_sample = 1.0 / self.sample_rate;
+        let time_per_sample = 1.0 / self.oscillator.get_sample_rate();
 
         if self.velocity > 0.0 || self.note != None {
             if let Some(note) = self.note {
-                self.frequency = midi_pitch_to_freq(note);
+                self.oscillator.set_frequency(midi_pitch_to_freq(note));
             }
 
             let samples = buffer.samples();
@@ -157,11 +155,9 @@ impl Plugin for MonoSine {
 
                 for output_buffer in outputs {
                     if let Some(output_sample) = output_buffer.get_mut(sample_index) {
-                        *output_sample = (self.theta.sin() * self.level * self.velocity) as f32;
+                        *output_sample = (self.oscillator.next_sample() * self.level * self.velocity) as f32;
                     }
                 }
-
-                self.theta += TAU * self.frequency / self.sample_rate;
             }
 
         }
