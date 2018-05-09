@@ -19,8 +19,8 @@ struct MonoSine {
     oscillator: Oscillator,
 }
 
-pub const ATTACK: f64 = 0.1;
-pub const DECAY: f64 = 0.1;
+const ATTACK: f64 = 0.1;
+const DECAY: f64 = 0.1;
 
 fn midi_pitch_to_freq(pitch: u8) -> f64 {
     const A4_PITCH: i8 = 69;
