@@ -14,8 +14,7 @@ use vst::plugin::{Category, CanDo, Info, Plugin};
 
 struct MonoSine {
     level: TargetVal<f64>,
-    target_velocity: f64,
-    velocity: f64,
+    velocity: TargetVal<f64>,
     note: Option<u8>,
     oscillator: Oscillator,
 }
@@ -42,12 +41,19 @@ impl MonoSine {
 
     fn note_on(&mut self, note: u8, velocity: u8) {
         self.note = Some(note);
-        self.target_velocity = velocity as f64 / 127.0;
+
+        let target = velocity as f64 / 127.0;
+        self.velocity.set_target(target);
+
+        let time_per_sample = 1.0 / self.oscillator.get_sample_rate();
+        self.velocity.set_inc_rate(Rate::Absolute(target * time_per_sample / ATTACK));
+        self.velocity.set_dec_rate(Rate::Absolute(target * time_per_sample / DECAY));
     }
 
     fn note_off(&mut self, note: u8) {
         if self.note == Some(note) {
             self.note = None;
+            self.velocity.set_target(0.0);
         }
     }
 }
@@ -58,8 +64,9 @@ impl Default for MonoSine {
             level: TargetVal::new(  Rate::Relative(0.001)
                                   , Rate::Relative(0.001)
                                   , 1.0),
-            velocity: 0.0,
-            target_velocity: 0.0,
+            velocity: TargetVal::new(  Rate::Absolute(0.0)
+                                     , Rate::Absolute(0.0)
+                                     , 0.0),
             note: None,
             oscillator: Oscillator::sine(44100.0),
         }
@@ -129,9 +136,7 @@ impl Plugin for MonoSine {
     }
 
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
-        let time_per_sample = 1.0 / self.oscillator.get_sample_rate();
-
-        if self.velocity > 0.0 || self.note != None {
+        if *self.velocity.get_value() > 0.0 || self.note != None {
             if let Some(note) = self.note {
                 self.oscillator.set_frequency(midi_pitch_to_freq(note));
             }
@@ -141,25 +146,13 @@ impl Plugin for MonoSine {
 
             for sample_index in 0..samples {
                 self.level.advance();
-
-                if None == self.note {
-                    if self.velocity > 0.0 {
-                        self.velocity -=
-                            self.target_velocity * time_per_sample / DECAY;
-                    }
-                }
-                else {
-                    if self.velocity < self.target_velocity {
-                        self.velocity +=
-                            self.target_velocity * time_per_sample / ATTACK;
-                    }
-                }
+                self.velocity.advance();
 
                 for output_buffer in outputs {
                     if let Some(output_sample) = output_buffer.get_mut(sample_index) {
                         *output_sample = (  self.oscillator.next_sample()
                                           * self.level.get_value()
-                                          * self.velocity) as f32;
+                                          * self.velocity.get_value()) as f32;
                     }
                 }
             }
