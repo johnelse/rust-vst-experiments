@@ -1,0 +1,7 @@
+[package]
+name = "targetval"
+version = "0.1.0"
+authors = ["John Else <john.else@gmail.com>"]
+
+[dependencies]
+num-traits = "0.2"

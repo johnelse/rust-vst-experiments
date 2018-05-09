@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "lib/generator",
+    "lib/targetval",
     "effect/digidist",
     "instrument/monosine",
 ]
