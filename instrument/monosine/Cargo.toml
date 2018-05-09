@@ -7,6 +7,7 @@ authors = ["John Else <john.else@gmail.com>"]
 vst = "0.0.1"
 
 generator = {version = "0.1.0", path = "../../lib/generator"}
+targetval = {version = "0.1.0", path = "../../lib/targetval"}
 
 [lib]
 crate-type = ["cdylib"]

@@ -1,9 +1,11 @@
 // lib.rs
 
 extern crate generator;
+extern crate targetval;
 #[macro_use] extern crate vst;
 
 use generator::{Generator, Oscillator};
+use targetval::{Rate, TargetVal};
 
 use vst::api::{Events, Supported};
 use vst::buffer::AudioBuffer;
@@ -11,8 +13,7 @@ use vst::event::Event;
 use vst::plugin::{Category, CanDo, Info, Plugin};
 
 struct MonoSine {
-    target_level: f64,
-    level: f64,
+    level: TargetVal<f64>,
     target_velocity: f64,
     velocity: f64,
     note: Option<u8>,
@@ -54,8 +55,9 @@ impl MonoSine {
 impl Default for MonoSine {
     fn default() -> MonoSine {
         MonoSine {
-            target_level: 1.0,
-            level: 1.0,
+            level: TargetVal::new(  Rate::Relative(0.001)
+                                  , Rate::Relative(0.001)
+                                  , 1.0),
             velocity: 0.0,
             target_velocity: 0.0,
             note: None,
@@ -91,14 +93,14 @@ impl Plugin for MonoSine {
 
     fn get_parameter(&self, index: i32) -> f32 {
         match index {
-            0 => self.target_level as f32,
+            0 => *self.level.get_target() as f32,
             _ => 0.0,
         }
     }
 
     fn set_parameter(&mut self, index: i32, value: f32) {
         match index {
-            0 => self.target_level = value as f64,
+            0 => self.level.set_target(value as f64),
             _ => (),
         }
     }
@@ -113,7 +115,7 @@ impl Plugin for MonoSine {
     fn get_parameter_text(&self, index: i32) -> String {
         match index {
             // Convert to a percentage
-            0 => format!("{}", self.target_level * 100.0),
+            0 => format!("{}", self.level.get_target() * 100.0),
             _ => "".to_string(),
         }
     }
@@ -138,7 +140,7 @@ impl Plugin for MonoSine {
             let (_, outputs) = buffer.split();
 
             for sample_index in 0..samples {
-                self.level += (self.target_level - self.level) / 1000.0;
+                self.level.advance();
 
                 if None == self.note {
                     if self.velocity > 0.0 {
@@ -155,7 +157,9 @@ impl Plugin for MonoSine {
 
                 for output_buffer in outputs {
                     if let Some(output_sample) = output_buffer.get_mut(sample_index) {
-                        *output_sample = (self.oscillator.next_sample() * self.level * self.velocity) as f32;
+                        *output_sample = (  self.oscillator.next_sample()
+                                          * self.level.get_value()
+                                          * self.velocity) as f32;
                     }
                 }
             }
