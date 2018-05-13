@@ -1,15 +1,15 @@
 // lib.rs
 
-extern crate vstutils;
 #[macro_use] extern crate vst;
-
-use vstutils::generator::{Generator, Oscillator};
-use vstutils::targetval::{Rate, TargetVal};
+extern crate vstutils;
 
 use vst::api::{Events, Supported};
 use vst::buffer::AudioBuffer;
 use vst::event::Event;
 use vst::plugin::{Category, CanDo, Info, Plugin};
+
+use vstutils::generator::{Generator, Oscillator};
+use vstutils::targetval::{Rate, TargetVal};
 
 struct MonoSine {
     level:      TargetVal<f64>,
