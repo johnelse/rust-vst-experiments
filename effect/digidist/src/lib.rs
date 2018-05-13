@@ -6,14 +6,14 @@ use vst::buffer::AudioBuffer;
 use vst::plugin::{Info, Plugin};
 
 struct DigiDist {
-    threshold: f32,
+    threshold:        f32,
     active_threshold: f32
 }
 
 impl Default for DigiDist {
     fn default() -> DigiDist {
         DigiDist {
-            threshold: 1.0,
+            threshold:        1.0,
             active_threshold: 1.0
         }
     }
@@ -22,12 +22,12 @@ impl Default for DigiDist {
 impl Plugin for DigiDist {
     fn get_info(&self) -> Info {
         Info {
-            name: "DigiDist".to_string(),
-            vendor: "johnelse".to_string(),
-            unique_id: 29102017,
+            name:       "DigiDist".to_string(),
+            vendor:     "johnelse".to_string(),
+            unique_id:  29102017,
 
-            inputs: 2,
-            outputs: 2,
+            inputs:     2,
+            outputs:    2,
             parameters: 1,
 
             // fill in the rest with the default values

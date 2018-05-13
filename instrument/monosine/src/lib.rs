@@ -13,9 +13,9 @@ use vst::event::Event;
 use vst::plugin::{Category, CanDo, Info, Plugin};
 
 struct MonoSine {
-    level: TargetVal<f64>,
-    velocity: TargetVal<f64>,
-    note: Option<u8>,
+    level:      TargetVal<f64>,
+    velocity:   TargetVal<f64>,
+    note:       Option<u8>,
     oscillator: Oscillator,
 }
 
@@ -63,13 +63,13 @@ impl MonoSine {
 impl Default for MonoSine {
     fn default() -> MonoSine {
         MonoSine {
-            level: TargetVal::new(  Rate::Relative(0.001)
-                                  , Rate::Relative(0.001)
-                                  , 1.0),
-            velocity: TargetVal::new(  Rate::Absolute(0.0)
-                                     , Rate::Absolute(0.0)
-                                     , 0.0),
-            note: None,
+            level:      TargetVal::new(  Rate::Relative(0.001)
+                                       , Rate::Relative(0.001)
+                                       , 1.0),
+            velocity:   TargetVal::new(  Rate::Absolute(0.0)
+                                       , Rate::Absolute(0.0)
+                                       , 0.0),
+            note:       None,
             oscillator: Oscillator::sine(44100.0),
         }
     }
@@ -78,15 +78,15 @@ impl Default for MonoSine {
 impl Plugin for MonoSine {
     fn get_info(&self) -> Info {
         Info {
-            name: "MonoSine".to_string(),
-            vendor: "johnelse".to_string(),
-            unique_id: 20012018,
+            name:       "MonoSine".to_string(),
+            vendor:     "johnelse".to_string(),
+            unique_id:  20012018,
 
-            inputs: 0,
-            outputs: 2,
+            inputs:     0,
+            outputs:    2,
             parameters: 1,
 
-            category: Category::Synth,
+            category:   Category::Synth,
 
             // fill in the rest with the default values
             ..Info::default()
