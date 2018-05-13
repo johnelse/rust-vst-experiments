@@ -1,11 +1,10 @@
 // lib.rs
 
-extern crate generator;
-extern crate targetval;
+extern crate vstutils;
 #[macro_use] extern crate vst;
 
-use generator::{Generator, Oscillator};
-use targetval::{Rate, TargetVal};
+use vstutils::generator::{Generator, Oscillator};
+use vstutils::targetval::{Rate, TargetVal};
 
 use vst::api::{Events, Supported};
 use vst::buffer::AudioBuffer;

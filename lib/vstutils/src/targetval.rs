@@ -1,6 +1,6 @@
 extern crate num_traits;
 
-use num_traits::Num;
+use self::num_traits::Num;
 
 /// TargetVal
 
