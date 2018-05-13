@@ -46,8 +46,10 @@ impl MonoSine {
         self.velocity.set_target(target);
 
         let time_per_sample = 1.0 / self.oscillator.get_sample_rate();
-        self.velocity.set_inc_rate(Rate::Absolute(target * time_per_sample / ATTACK));
-        self.velocity.set_dec_rate(Rate::Absolute(target * time_per_sample / DECAY));
+        self.velocity.set_inc_rate(Rate::Absolute(target
+                                                  * time_per_sample / ATTACK));
+        self.velocity.set_dec_rate(Rate::Absolute(target
+                                                  * time_per_sample / DECAY));
     }
 
     fn note_off(&mut self, note: u8) {

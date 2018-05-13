@@ -77,13 +77,16 @@ impl Plugin for DigiDist {
         for (input_buffer, output_buffer) in buffer.zip() {
             for (input_sample, output_sample) in input_buffer.iter().zip(output_buffer) {
 
-                self.active_threshold += 0.0001 * (self.threshold - self.active_threshold);
+                self.active_threshold += 0.0001
+                                         * (self.threshold - self.active_threshold);
 
                 if *input_sample >= 0.0 {
-                    *output_sample = input_sample.min(self.active_threshold) / self.active_threshold;
+                    *output_sample = input_sample.min(self.active_threshold)
+                                     / self.active_threshold;
                 }
                 else {
-                    *output_sample = input_sample.max(-self.active_threshold) / self.active_threshold;
+                    *output_sample = input_sample.max(-self.active_threshold)
+                                     / self.active_threshold;
                 }
 
             }
