@@ -8,6 +8,7 @@ use vst::buffer::AudioBuffer;
 use vst::event::Event;
 use vst::plugin::{Category, CanDo, Info, Plugin};
 
+use vstutils::convert::{midi_pitch_to_freq};
 use vstutils::generator::{Generator, Oscillator};
 use vstutils::targetval::{Rate, TargetVal};
 
@@ -20,14 +21,6 @@ struct MonoSine {
 
 const ATTACK: f64 = 0.1;
 const DECAY: f64 = 0.1;
-
-fn midi_pitch_to_freq(pitch: u8) -> f64 {
-    const A4_PITCH: i8 = 69;
-    const A4_FREQ: f64 = 440.0;
-
-    // Midi notes can be 0-127
-    ((f64::from(pitch as i8 - A4_PITCH)) / 12.).exp2() * A4_FREQ
-}
 
 impl MonoSine {
     fn process_midi_event(&mut self, data: [u8; 3]) {
