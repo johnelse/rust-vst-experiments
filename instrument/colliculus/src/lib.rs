@@ -14,6 +14,7 @@ use vstutils::targetval::{Rate, TargetVal};
 
 struct Colliculus {
     level:    TargetVal<f64>,
+    pan:      TargetVal<f64>,
     velocity: TargetVal<f64>,
     note:     Option<u8>,
     osc1:     Oscillator,
@@ -29,6 +30,9 @@ impl Default for Colliculus {
             level:    TargetVal::new(  Rate::Relative(0.001)
                                      , Rate::Relative(0.001)
                                      , 1.0),
+            pan:      TargetVal::new(  Rate::Relative(0.001)
+                                     , Rate::Relative(0.001)
+                                     , 0.0),
             velocity: TargetVal::new(  Rate::Absolute(0.0)
                                      , Rate::Absolute(0.0)
                                      , 0.0),
