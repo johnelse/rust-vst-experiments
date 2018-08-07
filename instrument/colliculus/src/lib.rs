@@ -60,6 +60,51 @@ impl Plugin for Colliculus {
             ..Info::default()
         }
     }
+
+    fn can_do(&self, can_do: CanDo) -> Supported {
+        match can_do {
+            CanDo::ReceiveMidiEvent => Supported::Yes,
+            _ => Supported::Maybe,
+        }
+   }
+
+    fn get_parameter(&self, index: i32) -> f32 {
+        match index {
+            0 => *self.level.get_target() as f32,
+            1 => (*self.pan.get_target() as f32 + 1.0) / 2.0,
+            _ => 0.0,
+        }
+    }
+
+    fn set_parameter(&mut self, index: i32, value: f32) {
+        match index {
+            0 => self.level.set_target(value as f64),
+            1 => self.pan.set_target(value as f64 * 2.0 - 1.0),
+            _ => (),
+        }
+    }
+
+    fn get_parameter_name(&self, index: i32) -> String {
+        match index {
+            0 => "Level".to_string(),
+            1 => "Pan".to_string(),
+            _ => "".to_string(),
+        }
+    }
+
+    fn get_parameter_text(&self, index: i32) -> String {
+        match index {
+            // Convert to a percentage
+            0 => format!("{}", self.level.get_target() * 100.0),
+            1 => format!("{}", self.pan.get_target() * 50.0),
+            _ => "".to_string(),
+        }
+    }
+
+    fn set_sample_rate(&mut self, rate: f32) {
+        self.osc1.set_sample_rate(rate as f64);
+        self.osc2.set_sample_rate(rate as f64);
+    }
 }
 
 plugin_main!(Colliculus);
