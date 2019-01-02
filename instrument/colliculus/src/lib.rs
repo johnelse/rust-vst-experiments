@@ -24,6 +24,36 @@ struct Colliculus {
 const ATTACK: f64 = 0.1;
 const DECAY: f64 = 0.1;
 
+impl Colliculus {
+    fn process_midi_event(&mut self, data: [u8; 3]) {
+        match data[0] {
+            128 => self.note_off(data[1]),
+            144 => self.note_on(data[1], data[2]),
+            _ => (),
+        }
+    }
+
+    fn note_on(&mut self, note: u8, velocity: u8) {
+        self.note = Some(note);
+
+        let target = velocity as f64 / 127.0;
+        self.velocity.set_target(target);
+
+        let time_per_sample = 1.0 / self.osc1.get_sample_rate();
+        self.velocity.set_inc_rate(Rate::Absolute(target
+                                                  * time_per_sample / ATTACK));
+        self.velocity.set_dec_rate(Rate::Absolute(target
+                                                  * time_per_sample / DECAY));
+    }
+
+    fn note_off(&mut self, note: u8) {
+        if self.note == Some(note) {
+            self.note = None;
+            self.velocity.set_target(0.0);
+        }
+    }
+}
+
 impl Default for Colliculus {
     fn default() -> Colliculus {
         Colliculus {
@@ -104,6 +134,15 @@ impl Plugin for Colliculus {
     fn set_sample_rate(&mut self, rate: f32) {
         self.osc1.set_sample_rate(rate as f64);
         self.osc2.set_sample_rate(rate as f64);
+    }
+
+    fn process_events(&mut self, events: &Events) {
+        for event in events.events() {
+            match event {
+                Event::Midi(ev) => self.process_midi_event(ev.data),
+                _ => (),
+            }
+        }
     }
 }
 
