@@ -136,6 +136,44 @@ impl Plugin for Colliculus {
         self.osc2.set_sample_rate(rate as f64);
     }
 
+    fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
+        if *self.velocity.get_value() > 0.0 || self.note != None {
+            if let Some(note) = self.note {
+                let f_beats  = 1 as f64;
+                let f_target = midi_pitch_to_freq(note);
+
+                let f_centre = (
+                                   f_beats * f_beats +
+                                   (4 as f64) * f_target * f_target
+                               ).sqrt() / (2 as f64);
+
+                self.osc1.set_frequency(f_centre + f_beats / (2 as f64));
+                self.osc2.set_frequency(f_centre - f_beats / (2 as f64));
+            }
+
+            let samples = buffer.samples();
+            let (_, outputs) = buffer.split();
+
+            if outputs.len() == 2 {
+                for sample_index in 0..samples {
+                    self.level.advance();
+                    self.velocity.advance();
+
+                    if let Some (left_sample) = outputs.get_mut(0).get_mut(sample_index) {
+                        *left_sample = (  self.osc1.next_sample()
+                                        * self.level.get_value()
+                                        * self.velocity.get_value()) as f32;
+                    }
+                    if let Some (right_sample) = outputs.get_mut(1).get_mut(sample_index) {
+                        *right_sample = (  self.osc2.next_sample()
+                                         * self.level.get_value()
+                                         * self.velocity.get_value()) as f32;
+                    }
+                }
+            }
+        }
+    }
+
     fn process_events(&mut self, events: &Events) {
         for event in events.events() {
             match event {
