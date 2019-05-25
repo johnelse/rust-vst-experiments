@@ -157,15 +157,25 @@ impl Plugin for Colliculus {
             if outputs.len() == 2 {
                 for sample_index in 0..samples {
                     self.level.advance();
+                    self.pan.advance();
                     self.velocity.advance();
 
+                    let osc1_value = self.osc1.next_sample();
+                    let osc2_value = self.osc2.next_sample();
+
+                    let pan        = self.pan.get_value();
+                    let osc1_left  = 1.0 as f64 - pan;
+                    let osc2_left  = pan;
+                    let osc1_right = pan;
+                    let osc2_right = 1.0 as f64 - pan;
+
                     if let Some (left_sample) = outputs.get_mut(0).get_mut(sample_index) {
-                        *left_sample = (  self.osc1.next_sample()
+                        *left_sample = (  (osc1_value * osc1_left + osc2_value * osc2_left)
                                         * self.level.get_value()
                                         * self.velocity.get_value()) as f32;
                     }
                     if let Some (right_sample) = outputs.get_mut(1).get_mut(sample_index) {
-                        *right_sample = (  self.osc2.next_sample()
+                        *right_sample = (  (osc1_value * osc1_right + osc2_value * osc2_right)
                                          * self.level.get_value()
                                          * self.velocity.get_value()) as f32;
                     }
