@@ -62,7 +62,7 @@ impl Default for Colliculus {
                                      , 1.0),
             pan:      TargetVal::new(  Rate::Relative(0.001)
                                      , Rate::Relative(0.001)
-                                     , 0.0),
+                                     , 0.5),
             velocity: TargetVal::new(  Rate::Absolute(0.0)
                                      , Rate::Absolute(0.0)
                                      , 0.0),
@@ -101,7 +101,7 @@ impl Plugin for Colliculus {
     fn get_parameter(&self, index: i32) -> f32 {
         match index {
             0 => *self.level.get_target() as f32,
-            1 => (*self.pan.get_target() as f32 + 1.0) / 2.0,
+            1 => *self.pan.get_target() as f32,
             _ => 0.0,
         }
     }
@@ -109,7 +109,7 @@ impl Plugin for Colliculus {
     fn set_parameter(&mut self, index: i32, value: f32) {
         match index {
             0 => self.level.set_target(value as f64),
-            1 => self.pan.set_target(value as f64 * 2.0 - 1.0),
+            1 => self.pan.set_target(value as f64),
             _ => (),
         }
     }
@@ -126,7 +126,7 @@ impl Plugin for Colliculus {
         match index {
             // Convert to a percentage
             0 => format!("{}", self.level.get_target() * 100.0),
-            1 => format!("{}", self.pan.get_target() * 50.0),
+            1 => format!("{}", (self.pan.get_target() - 0.5) * 100.0),
             _ => "".to_string(),
         }
     }
