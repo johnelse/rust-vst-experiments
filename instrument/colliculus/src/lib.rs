@@ -103,7 +103,7 @@ impl Plugin for Colliculus {
             CanDo::ReceiveMidiEvent => Supported::Yes,
             _ => Supported::Maybe,
         }
-   }
+    }
 
     fn get_parameter(&self, index: i32) -> f32 {
         match index {
