@@ -11,6 +11,5 @@ monosine
 colliculus
 ----------
 
-* Sync beats to host tempo
 * Parameterise beat division
 * Parameterise waveform type

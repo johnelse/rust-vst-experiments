@@ -3,16 +3,18 @@
 #[macro_use] extern crate vst;
 extern crate vstutils;
 
-use vst::api::{Events, Supported};
+use vst::api::{Events, Supported, TimeInfoFlags};
 use vst::buffer::AudioBuffer;
 use vst::event::{Event, MidiEvent};
-use vst::plugin::{Category, CanDo, Info, Plugin};
+use vst::host::Host;
+use vst::plugin::{Category, CanDo, HostCallback, Info, Plugin};
 
 use vstutils::convert::{midi_pitch_to_freq};
 use vstutils::generator::{Generator, Oscillator};
 use vstutils::targetval::{Rate, TargetVal};
 
 struct Colliculus {
+    host:     HostCallback,
     level:    TargetVal<f64>,
     pan:      TargetVal<f64>,
     velocity: TargetVal<f64>,
@@ -56,7 +58,14 @@ impl Colliculus {
 
 impl Default for Colliculus {
     fn default() -> Colliculus {
+        Colliculus::new(Default::default())
+    }
+}
+
+impl Plugin for Colliculus {
+    fn new(host: HostCallback) -> Colliculus {
         Colliculus {
+            host:     host,
             level:    TargetVal::new(  Rate::Relative(0.001)
                                      , Rate::Relative(0.001)
                                      , 1.0),
@@ -71,9 +80,7 @@ impl Default for Colliculus {
             osc2:     Oscillator::sine(44100.0),
         }
     }
-}
 
-impl Plugin for Colliculus {
     fn get_info(&self) -> Info {
         Info {
             name:       "Colliculus".to_string(),
@@ -139,7 +146,13 @@ impl Plugin for Colliculus {
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
         if *self.velocity.get_value() > 0.0 || self.note != None {
             if let Some(note) = self.note {
-                let f_beats  = 1 as f64;
+                let f_beats = match self.host.get_time_info(TimeInfoFlags::TEMPO_VALID.bits()) {
+                    None            => 1 as f64,
+                    Some(time_info) => {
+                         time_info.tempo / (60 as f64)
+                    },
+                };
+
                 let f_target = midi_pitch_to_freq(note);
 
                 let f_centre = (
