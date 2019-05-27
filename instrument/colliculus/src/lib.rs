@@ -5,7 +5,7 @@ extern crate vstutils;
 
 use vst::api::{Events, Supported};
 use vst::buffer::AudioBuffer;
-use vst::event::Event;
+use vst::event::{Event, MidiEvent};
 use vst::plugin::{Category, CanDo, Info, Plugin};
 
 use vstutils::convert::{midi_pitch_to_freq};
@@ -187,7 +187,7 @@ impl Plugin for Colliculus {
     fn process_events(&mut self, events: &Events) {
         for event in events.events() {
             match event {
-                Event::Midi(ev) => self.process_midi_event(ev.data),
+                Event::Midi(MidiEvent {data, ..}) => self.process_midi_event(data),
                 _ => (),
             }
         }
