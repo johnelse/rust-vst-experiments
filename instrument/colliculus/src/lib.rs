@@ -10,17 +10,21 @@ use vst::host::Host;
 use vst::plugin::{Category, CanDo, HostCallback, Info, Plugin};
 
 use vstutils::convert::{midi_pitch_to_freq};
+use vstutils::division;
+use vstutils::division::Division;
 use vstutils::generator::{Generator, Oscillator};
 use vstutils::targetval::{Rate, TargetVal};
 
 struct Colliculus {
-    host:     HostCallback,
-    level:    TargetVal<f64>,
-    pan:      TargetVal<f64>,
-    velocity: TargetVal<f64>,
-    note:     Option<u8>,
-    osc1:     Oscillator,
-    osc2:     Oscillator,
+    host:           HostCallback,
+    level:          TargetVal<f64>,
+    pan:            TargetVal<f64>,
+    velocity:       TargetVal<f64>,
+    division_param: f64,
+    division:       Division,
+    note:           Option<u8>,
+    osc1:           Oscillator,
+    osc2:           Oscillator,
 }
 
 const ATTACK: f64 = 0.1;
@@ -65,19 +69,21 @@ impl Default for Colliculus {
 impl Plugin for Colliculus {
     fn new(host: HostCallback) -> Colliculus {
         Colliculus {
-            host:     host,
-            level:    TargetVal::new(  Rate::Relative(0.001)
-                                     , Rate::Relative(0.001)
-                                     , 1.0),
-            pan:      TargetVal::new(  Rate::Relative(0.001)
-                                     , Rate::Relative(0.001)
-                                     , 0.5),
-            velocity: TargetVal::new(  Rate::Absolute(0.0)
-                                     , Rate::Absolute(0.0)
-                                     , 0.0),
-            note:     None,
-            osc1:     Oscillator::sine(44100.0),
-            osc2:     Oscillator::sine(44100.0),
+            host:           host,
+            level:          TargetVal::new(  Rate::Relative(0.001)
+                                           , Rate::Relative(0.001)
+                                           , 1.0),
+            pan:            TargetVal::new(  Rate::Relative(0.001)
+                                           , Rate::Relative(0.001)
+                                           , 0.5),
+            velocity:       TargetVal::new(  Rate::Absolute(0.0)
+                                           , Rate::Absolute(0.0)
+                                           , 0.0),
+            division_param: 0.0,
+            division:       division::get_division(0.0),
+            note:           None,
+            osc1:           Oscillator::sine(44100.0),
+            osc2:           Oscillator::sine(44100.0),
         }
     }
 
@@ -117,6 +123,10 @@ impl Plugin for Colliculus {
         match index {
             0 => self.level.set_target(value as f64),
             1 => self.pan.set_target(value as f64),
+            2 => {
+                self.division_param = value as f64;
+                self.division       = division::get_division(self.division_param)
+            },
             _ => (),
         }
     }
@@ -125,6 +135,7 @@ impl Plugin for Colliculus {
         match index {
             0 => "Level".to_string(),
             1 => "Pan".to_string(),
+            2 => "Division".to_string(),
             _ => "".to_string(),
         }
     }
@@ -134,6 +145,7 @@ impl Plugin for Colliculus {
             // Convert to a percentage
             0 => format!("{}", self.level.get_target() * 100.0),
             1 => format!("{}", (self.pan.get_target() - 0.5) * 100.0),
+            2 => division::get_name(self.division),
             _ => "".to_string(),
         }
     }
@@ -147,11 +159,11 @@ impl Plugin for Colliculus {
         if *self.velocity.get_value() > 0.0 || self.note != None {
             if let Some(note) = self.note {
                 let f_beats = match self.host.get_time_info(TimeInfoFlags::TEMPO_VALID.bits()) {
-                    None            => 1 as f64,
+                    None            => 120 as f64,
                     Some(time_info) => {
-                         time_info.tempo / (60 as f64)
+                         time_info.tempo
                     },
-                };
+                } * division::get_tempo_multiplier(self.division);
 
                 let f_target = midi_pitch_to_freq(note);
 

@@ -11,5 +11,4 @@ monosine
 colliculus
 ----------
 
-* Parameterise beat division
 * Parameterise waveform type
