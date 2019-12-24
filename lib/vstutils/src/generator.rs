@@ -1,17 +1,17 @@
-const TAU: f64 = ::std::f64::consts::PI * 2.0;
+const TAU: f32 = ::std::f32::consts::PI * 2.0;
 
 /// Generator
 
 pub trait Generator {
-    fn next_sample(&mut self) -> f64;
+    fn next_sample(&mut self) -> f32;
 }
 
 /// OscillatorState
 
 struct OscillatorState {
-    frequency:   f64,
-    sample_rate: f64,
-    theta:       f64,
+    frequency:   f32,
+    sample_rate: f32,
+    theta:       f32,
 }
 
 impl Default for OscillatorState {
@@ -25,19 +25,19 @@ impl Default for OscillatorState {
 }
 
 impl OscillatorState {
-    fn get_frequency(&mut self) -> f64 {
+    fn get_frequency(&mut self) -> f32 {
         self.frequency
     }
 
-    fn set_frequency(&mut self, frequency: f64) {
+    fn set_frequency(&mut self, frequency: f32) {
         self.frequency = frequency;
     }
 
-    fn get_sample_rate(&mut self) -> f64 {
+    fn get_sample_rate(&mut self) -> f32 {
         self.sample_rate
     }
 
-    fn set_sample_rate(&mut self, sample_rate: f64) {
+    fn set_sample_rate(&mut self, sample_rate: f32) {
         self.sample_rate = sample_rate;
     }
 
@@ -51,11 +51,11 @@ impl OscillatorState {
 
 pub struct Oscillator {
     state:      OscillatorState,
-    gen_sample: fn(f64) -> f64,
+    gen_sample: fn(f32) -> f32,
 }
 
 impl Generator for Oscillator {
-    fn next_sample(&mut self) -> f64 {
+    fn next_sample(&mut self) -> f32 {
         let result = (self.gen_sample)(self.state.theta);
         self.state.advance();
         result
@@ -63,29 +63,29 @@ impl Generator for Oscillator {
 }
 
 impl Oscillator {
-    pub fn sine(sample_rate: f64) -> Oscillator {
+    pub fn sine(sample_rate: f32) -> Oscillator {
         Oscillator {
             state:      OscillatorState {
                             sample_rate: sample_rate,
                             .. OscillatorState::default()
                         },
-            gen_sample: |theta: f64| -> f64 { theta.sin() },
+            gen_sample: |theta: f32| -> f32 { theta.sin() },
         }
     }
 
-    pub fn get_frequency(&mut self) -> f64 {
+    pub fn get_frequency(&mut self) -> f32 {
         self.state.get_frequency()
     }
 
-    pub fn set_frequency(&mut self, frequency: f64) {
+    pub fn set_frequency(&mut self, frequency: f32) {
         self.state.set_frequency(frequency);
     }
 
-    pub fn get_sample_rate(&mut self) -> f64 {
+    pub fn get_sample_rate(&mut self) -> f32 {
         self.state.get_sample_rate()
     }
 
-    pub fn set_sample_rate(&mut self, sample_rate: f64) {
+    pub fn set_sample_rate(&mut self, sample_rate: f32) {
         self.state.set_sample_rate(sample_rate);
     }
 }

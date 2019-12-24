@@ -17,18 +17,18 @@ use vstutils::targetval::{Rate, TargetVal};
 
 struct Colliculus {
     host:           HostCallback,
-    level:          TargetVal<f64>,
-    pan:            TargetVal<f64>,
-    velocity:       TargetVal<f64>,
-    division_param: f64,
+    level:          TargetVal<f32>,
+    pan:            TargetVal<f32>,
+    velocity:       TargetVal<f32>,
+    division_param: f32,
     division:       Division,
     note:           Option<u8>,
     osc1:           Oscillator,
     osc2:           Oscillator,
 }
 
-const ATTACK: f64 = 0.1;
-const DECAY: f64 = 0.1;
+const ATTACK: f32 = 0.1;
+const DECAY: f32 = 0.1;
 
 impl Colliculus {
     fn process_midi_event(&mut self, data: [u8; 3]) {
@@ -42,7 +42,7 @@ impl Colliculus {
     fn note_on(&mut self, note: u8, velocity: u8) {
         self.note = Some(note);
 
-        let target = velocity as f64 / 127.0;
+        let target = velocity as f32 / 127.0;
         self.velocity.set_target(target);
 
         let time_per_sample = 1.0 / self.osc1.get_sample_rate();
@@ -121,10 +121,10 @@ impl Plugin for Colliculus {
 
     fn set_parameter(&mut self, index: i32, value: f32) {
         match index {
-            0 => self.level.set_target(value as f64),
-            1 => self.pan.set_target(value as f64),
+            0 => self.level.set_target(value),
+            1 => self.pan.set_target(value),
             2 => {
-                self.division_param = value as f64;
+                self.division_param = value;
                 self.division       = division::get_division(self.division_param)
             },
             _ => (),
@@ -151,17 +151,17 @@ impl Plugin for Colliculus {
     }
 
     fn set_sample_rate(&mut self, rate: f32) {
-        self.osc1.set_sample_rate(rate as f64);
-        self.osc2.set_sample_rate(rate as f64);
+        self.osc1.set_sample_rate(rate);
+        self.osc2.set_sample_rate(rate);
     }
 
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
         if *self.velocity.get_value() > 0.0 || self.note != None {
             if let Some(note) = self.note {
                 let f_beats = match self.host.get_time_info(TimeInfoFlags::TEMPO_VALID.bits()) {
-                    None            => 120 as f64,
+                    None            => 120.,
                     Some(time_info) => {
-                         time_info.tempo
+                         time_info.tempo as f32
                     },
                 } * division::get_tempo_multiplier(self.division);
 
@@ -169,11 +169,11 @@ impl Plugin for Colliculus {
 
                 let f_centre = (
                                    f_beats * f_beats +
-                                   (4 as f64) * f_target * f_target
-                               ).sqrt() / (2 as f64);
+                                   4. * f_target * f_target
+                               ).sqrt() / 2.;
 
-                self.osc1.set_frequency(f_centre + f_beats / (2 as f64));
-                self.osc2.set_frequency(f_centre - f_beats / (2 as f64));
+                self.osc1.set_frequency(f_centre + f_beats / 2.);
+                self.osc2.set_frequency(f_centre - f_beats / 2.);
             }
 
             let samples = buffer.samples();
@@ -189,20 +189,20 @@ impl Plugin for Colliculus {
                     let osc2_value = self.osc2.next_sample();
 
                     let pan        = self.pan.get_value();
-                    let osc1_left  = 1.0 as f64 - pan;
+                    let osc1_left  = 1.0 - pan;
                     let osc2_left  = pan;
                     let osc1_right = pan;
-                    let osc2_right = 1.0 as f64 - pan;
+                    let osc2_right = 1.0 - pan;
 
                     if let Some (left_sample) = outputs.get_mut(0).get_mut(sample_index) {
-                        *left_sample = (  (osc1_value * osc1_left + osc2_value * osc2_left)
-                                        * self.level.get_value()
-                                        * self.velocity.get_value()) as f32;
+                        *left_sample =   (osc1_value * osc1_left + osc2_value * osc2_left)
+                                       * self.level.get_value()
+                                       * self.velocity.get_value();
                     }
                     if let Some (right_sample) = outputs.get_mut(1).get_mut(sample_index) {
-                        *right_sample = (  (osc1_value * osc1_right + osc2_value * osc2_right)
-                                         * self.level.get_value()
-                                         * self.velocity.get_value()) as f32;
+                        *right_sample =   (osc1_value * osc1_right + osc2_value * osc2_right)
+                                        * self.level.get_value()
+                                        * self.velocity.get_value();
                     }
                 }
             }

@@ -13,14 +13,14 @@ use vstutils::generator::{Generator, Oscillator};
 use vstutils::targetval::{Rate, TargetVal};
 
 struct MonoSine {
-    level:      TargetVal<f64>,
-    velocity:   TargetVal<f64>,
+    level:      TargetVal<f32>,
+    velocity:   TargetVal<f32>,
     note:       Option<u8>,
     oscillator: Oscillator,
 }
 
-const ATTACK: f64 = 0.1;
-const DECAY: f64 = 0.1;
+const ATTACK: f32 = 0.1;
+const DECAY: f32 = 0.1;
 
 impl MonoSine {
     fn process_midi_event(&mut self, data: [u8; 3]) {
@@ -34,7 +34,7 @@ impl MonoSine {
     fn note_on(&mut self, note: u8, velocity: u8) {
         self.note = Some(note);
 
-        let target = velocity as f64 / 127.0;
+        let target = velocity as f32 / 127.0;
         self.velocity.set_target(target);
 
         let time_per_sample = 1.0 / self.oscillator.get_sample_rate();
@@ -101,7 +101,7 @@ impl Plugin for MonoSine {
 
     fn set_parameter(&mut self, index: i32, value: f32) {
         match index {
-            0 => self.level.set_target(value as f64),
+            0 => self.level.set_target(value),
             _ => (),
         }
     }
@@ -126,7 +126,7 @@ impl Plugin for MonoSine {
     }
 
     fn set_sample_rate(&mut self, rate: f32) {
-        self.oscillator.set_sample_rate(rate as f64);
+        self.oscillator.set_sample_rate(rate);
     }
 
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {

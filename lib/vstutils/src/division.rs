@@ -19,13 +19,13 @@ pub enum Division {
 
 const NUM_DIVISIONS: u8 = 15;
 
-pub fn get_division(param: f64) -> Division {
+pub fn get_division(param: f32) -> Division {
     let clamped_param =
         if      param < 0.0 {0.0}
         else if param > 1.0 {1.0}
         else                {param};
 
-    match (clamped_param * NUM_DIVISIONS as f64) as u8 {
+    match (clamped_param * NUM_DIVISIONS as f32) as u8 {
         0  => Division::WholeDot,
         1  => Division::Whole,
         2  => Division::WholeTriplet,
@@ -64,8 +64,8 @@ pub fn get_name(division: Division) -> String {
     }
 }
 
-pub fn get_tempo_multiplier(division: Division) -> f64 {
-    let beat_multiplier : f64 = match division {
+pub fn get_tempo_multiplier(division: Division) -> f32 {
+    let beat_multiplier : f32 = match division {
         Division::WholeDot         => 0.5 / 3.0,
         Division::Whole            => 0.25,
         Division::WholeTriplet     => 0.375,
