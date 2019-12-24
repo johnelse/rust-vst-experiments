@@ -43,6 +43,7 @@ impl OscillatorState {
 
     fn advance(&mut self) {
         self.theta += TAU * self.frequency / self.sample_rate;
+        self.theta %= TAU;
     }
 }
 
