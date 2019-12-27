@@ -1,5 +1,41 @@
 const TAU: f32 = ::std::f32::consts::PI * 2.0;
 
+/// WaveTable
+
+pub struct WaveTable {
+    values: Box<[f32]>,
+}
+
+impl WaveTable {
+    pub fn new(size: usize, gen_sample: fn(f32) -> f32) -> WaveTable {
+        let mut values = Vec::with_capacity(size);
+        let size_f = size as f32;
+
+        for i in 0..size {
+            values.push(gen_sample(TAU * (i as f32) / (size_f)));
+        }
+
+        WaveTable {
+            values: values.into_boxed_slice(),
+        }
+    }
+
+    /// This method assumes 0 <= theta and theta < tau
+    pub fn get_value(&self, theta: f32) -> f32
+    {
+        let table_size = self.values.len();
+        let position   = theta / TAU * (table_size as f32);
+        let index0     = position as usize;
+        let index1     = if index0 == (table_size - 1) {0} else {index0 + 1};
+        let fraction   = position - (index0 as f32);
+
+        let value0 = self.values[index0];
+        let value1 = self.values[index1];
+
+        value0 + (value1 - value0) * fraction
+    }
+}
+
 /// Generator
 
 pub trait Generator {
@@ -51,12 +87,12 @@ impl OscillatorState {
 
 pub struct Oscillator {
     state:      OscillatorState,
-    gen_sample: fn(f32) -> f32,
+    wavetable:  WaveTable,
 }
 
 impl Generator for Oscillator {
     fn next_sample(&mut self) -> f32 {
-        let result = (self.gen_sample)(self.state.theta);
+        let result = self.wavetable.get_value(self.state.theta);
         self.state.advance();
         result
     }
@@ -69,7 +105,7 @@ impl Oscillator {
                             sample_rate: sample_rate,
                             .. OscillatorState::default()
                         },
-            gen_sample: |theta: f32| -> f32 { theta.sin() },
+            wavetable:  WaveTable::new(1024, |theta: f32| -> f32 { theta.sin() }),
         }
     }
 
