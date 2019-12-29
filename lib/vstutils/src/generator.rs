@@ -2,12 +2,12 @@ const TAU: f32 = ::std::f32::consts::PI * 2.0;
 
 /// WaveTable
 
-pub struct WaveTable {
+struct WaveTable {
     values: Box<[f32]>,
 }
 
 impl WaveTable {
-    pub fn new(size: usize, gen_sample: fn(f32) -> f32) -> WaveTable {
+    fn new(size: usize, gen_sample: fn(f32) -> f32) -> WaveTable {
         let mut values = Vec::with_capacity(size);
         let size_f = size as f32;
 
@@ -20,7 +20,7 @@ impl WaveTable {
         }
     }
 
-    pub fn get_value(&self, position: f32) -> f32 {
+    fn get_value(&self, position: f32) -> f32 {
         let table_size = self.values.len();
         let index0     = position as usize;
         let index1     = if index0 == (table_size - 1) {0} else {index0 + 1};
