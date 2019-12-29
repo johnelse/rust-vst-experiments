@@ -20,11 +20,8 @@ impl WaveTable {
         }
     }
 
-    /// This method assumes 0 <= theta and theta < tau
-    pub fn get_value(&self, theta: f32) -> f32
-    {
+    pub fn get_value(&self, position: f32) -> f32 {
         let table_size = self.values.len();
-        let position   = theta / TAU * (table_size as f32);
         let index0     = position as usize;
         let index1     = if index0 == (table_size - 1) {0} else {index0 + 1};
         let fraction   = position - (index0 as f32);
@@ -45,28 +42,33 @@ pub trait Generator {
 /// OscillatorState
 
 struct OscillatorState {
-    frequency:   f32,
-    sample_rate: f32,
-    theta:       f32,
-}
-
-impl Default for OscillatorState {
-    fn default() -> OscillatorState {
-        OscillatorState {
-            frequency:   440.0,
-            sample_rate: 44100.0,
-            theta:       0.0,
-        }
-    }
+    frequency:      f32,
+    sample_rate:    f32,
+    table_size_f:   f32,
+    table_position: f32,
+    table_rate:     f32,
 }
 
 impl OscillatorState {
+    fn new(table_size: usize) -> OscillatorState {
+        let mut state = OscillatorState {
+            frequency:      440.0,
+            sample_rate:    44100.0,
+            table_size_f:   table_size as f32,
+            table_position: 0.0,
+            table_rate:     0.0,
+        };
+        state.update_table_rate();
+        state
+    }
+
     fn get_frequency(&mut self) -> f32 {
         self.frequency
     }
 
     fn set_frequency(&mut self, frequency: f32) {
         self.frequency = frequency;
+        self.update_table_rate();
     }
 
     fn get_sample_rate(&mut self) -> f32 {
@@ -75,11 +77,22 @@ impl OscillatorState {
 
     fn set_sample_rate(&mut self, sample_rate: f32) {
         self.sample_rate = sample_rate;
+        self.update_table_rate();
     }
 
-    fn advance(&mut self) {
-        self.theta += TAU * self.frequency / self.sample_rate;
-        self.theta %= TAU;
+    fn update_table_rate(&mut self) {
+        self.table_rate = self.table_size_f * self.frequency / self.sample_rate;
+    }
+
+    fn next_position(&mut self) -> f32 {
+        let position = self.table_position;
+
+        self.table_position += self.table_rate;
+        if self.table_position >= self.table_size_f {
+            self.table_position -= self.table_size_f;
+        }
+
+        position
     }
 }
 
@@ -92,19 +105,19 @@ pub struct Oscillator {
 
 impl Generator for Oscillator {
     fn next_sample(&mut self) -> f32 {
-        let result = self.wavetable.get_value(self.state.theta);
-        self.state.advance();
-        result
+        let position = self.state.next_position();
+        self.wavetable.get_value(position)
     }
 }
 
 impl Oscillator {
     pub fn sine(sample_rate: f32) -> Oscillator {
+        let table_size = 1024;
+        let mut state = OscillatorState::new(table_size);
+        state.set_sample_rate(sample_rate);
+
         Oscillator {
-            state:      OscillatorState {
-                            sample_rate: sample_rate,
-                            .. OscillatorState::default()
-                        },
+            state:      state,
             wavetable:  WaveTable::new(1024, |theta: f32| -> f32 { theta.sin() }),
         }
     }
