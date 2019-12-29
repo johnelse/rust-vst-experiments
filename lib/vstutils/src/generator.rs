@@ -24,7 +24,7 @@ impl WaveTable {
         let table_size = self.values.len();
         let index0     = position as usize;
         let index1     = if index0 == (table_size - 1) {0} else {index0 + 1};
-        let fraction   = position - (index0 as f32);
+        let fraction   = position % 1.0;
 
         let value0 = self.values[index0];
         let value1 = self.values[index1];
