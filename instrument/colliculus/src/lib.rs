@@ -167,6 +167,9 @@ impl Plugin for Colliculus {
 
                 let f_target = midi_pitch_to_freq(note);
 
+                // The centre frequency is related to the target frequency and
+                // the beats frequency as follows:
+                // (f_centre + f_beats / 2) * (f_centre - f_beats / 2) = f_target ^ 2
                 let f_centre = (
                                    f_beats * f_beats +
                                    4. * f_target * f_target
