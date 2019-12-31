@@ -95,7 +95,7 @@ impl Plugin for Colliculus {
 
             inputs:     0,
             outputs:    2,
-            parameters: 4,
+            parameters: 3,
 
             category:   Category::Synth,
 
