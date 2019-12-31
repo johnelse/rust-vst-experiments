@@ -9,10 +9,10 @@ use vst::event::{Event, MidiEvent};
 use vst::host::Host;
 use vst::plugin::{Category, CanDo, HostCallback, Info, Plugin};
 
-use vstutils::convert::{midi_pitch_to_freq};
 use vstutils::division;
 use vstutils::division::Division;
 use vstutils::generator::{Generator, Oscillator};
+use vstutils::maths::{midi_pitch_to_freq};
 use vstutils::targetval::{Rate, TargetVal};
 
 struct Colliculus {

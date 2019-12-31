@@ -8,8 +8,8 @@ use vst::buffer::AudioBuffer;
 use vst::event::Event;
 use vst::plugin::{Category, CanDo, Info, Plugin};
 
-use vstutils::convert::{midi_pitch_to_freq};
 use vstutils::generator::{Generator, Oscillator};
+use vstutils::maths::{midi_pitch_to_freq};
 use vstutils::targetval::{Rate, TargetVal};
 
 struct MonoSine {
