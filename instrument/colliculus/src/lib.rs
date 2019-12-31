@@ -12,7 +12,7 @@ use vst::plugin::{Category, CanDo, HostCallback, Info, Plugin};
 use vstutils::division;
 use vstutils::division::Division;
 use vstutils::generator::{Generator, Oscillator};
-use vstutils::maths::{midi_pitch_to_freq};
+use vstutils::maths::{get_beats_frequencies, midi_pitch_to_freq};
 use vstutils::targetval::{Rate, TargetVal};
 
 struct Colliculus {
@@ -165,18 +165,11 @@ impl Plugin for Colliculus {
                     },
                 } * division::get_tempo_multiplier(self.division);
 
-                let f_target = midi_pitch_to_freq(note);
+                let f_target           = midi_pitch_to_freq(note);
+                let (f_lower, f_upper) = get_beats_frequencies(f_target, f_beats);
 
-                // The centre frequency is related to the target frequency and
-                // the beats frequency as follows:
-                // (f_centre + f_beats / 2) * (f_centre - f_beats / 2) = f_target ^ 2
-                let f_centre = (
-                                   f_beats * f_beats +
-                                   4. * f_target * f_target
-                               ).sqrt() / 2.;
-
-                self.osc1.set_frequency(f_centre + f_beats / 2.);
-                self.osc2.set_frequency(f_centre - f_beats / 2.);
+                self.osc1.set_frequency(f_upper);
+                self.osc2.set_frequency(f_lower);
             }
 
             let samples = buffer.samples();
