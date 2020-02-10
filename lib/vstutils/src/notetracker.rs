@@ -54,6 +54,10 @@ impl NoteTracker {
             }
         }
     }
+
+    pub fn get_playing_notes(&self) -> Vec<u8> {
+        self.playing_notes.iter().copied().collect()
+    }
 }
 
 #[cfg(test)]
