@@ -13,6 +13,7 @@ use vstutils::division;
 use vstutils::division::Division;
 use vstutils::generator::{Generator, Oscillator};
 use vstutils::maths::{get_beats_frequencies, midi_pitch_to_freq};
+use vstutils::notetracker::NoteTracker;
 use vstutils::targetval::{Rate, TargetVal};
 
 struct Colliculus {
@@ -22,7 +23,7 @@ struct Colliculus {
     velocity:       TargetVal<f32>,
     division_param: f32,
     division:       Division,
-    note:           Option<u8>,
+    tracker:        NoteTracker,
     osc1:           Oscillator,
     osc2:           Oscillator,
 }
@@ -40,7 +41,7 @@ impl Colliculus {
     }
 
     fn note_on(&mut self, note: u8, velocity: u8) {
-        self.note = Some(note);
+        self.tracker.note_on(note);
 
         let target = velocity as f32 / 127.0;
         self.velocity.set_target(target);
@@ -53,10 +54,19 @@ impl Colliculus {
     }
 
     fn note_off(&mut self, note: u8) {
-        if self.note == Some(note) {
-            self.note = None;
+        self.tracker.note_off(note);
+
+        if self.get_current_note() == None {
             self.velocity.set_target(0.0);
         }
+    }
+
+    fn get_current_note(&self) -> Option<u8>
+    {
+        self.tracker
+            .get_playing_notes()
+            .get(0)
+            .map(|note| note.to_owned())
     }
 }
 
@@ -81,7 +91,7 @@ impl Plugin for Colliculus {
                                            , 0.0),
             division_param: 0.0,
             division:       division::get_division(0.0),
-            note:           None,
+            tracker:        NoteTracker::new(1, 9),
             osc1:           Oscillator::sine(44100.0),
             osc2:           Oscillator::sine(44100.0),
         }
@@ -156,8 +166,8 @@ impl Plugin for Colliculus {
     }
 
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
-        if *self.velocity.get_value() > 0.0 || self.note != None {
-            if let Some(note) = self.note {
+        if *self.velocity.get_value() > 0.0 || self.get_current_note() != None {
+            if let Some(note) = self.get_current_note() {
                 let f_beats = match self.host.get_time_info(TimeInfoFlags::TEMPO_VALID.bits()) {
                     None            => 120.,
                     Some(time_info) => {
