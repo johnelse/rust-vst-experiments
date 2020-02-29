@@ -62,7 +62,7 @@ impl OscillatorState {
         state
     }
 
-    fn get_frequency(&mut self) -> f32 {
+    fn get_frequency(&self) -> f32 {
         self.frequency
     }
 
@@ -71,7 +71,7 @@ impl OscillatorState {
         self.update_table_rate();
     }
 
-    fn get_sample_rate(&mut self) -> f32 {
+    fn get_sample_rate(&self) -> f32 {
         self.sample_rate
     }
 
@@ -122,7 +122,7 @@ impl Oscillator {
         }
     }
 
-    pub fn get_frequency(&mut self) -> f32 {
+    pub fn get_frequency(&self) -> f32 {
         self.state.get_frequency()
     }
 
@@ -130,7 +130,7 @@ impl Oscillator {
         self.state.set_frequency(frequency);
     }
 
-    pub fn get_sample_rate(&mut self) -> f32 {
+    pub fn get_sample_rate(&self) -> f32 {
         self.state.get_sample_rate()
     }
 
