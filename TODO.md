@@ -1,8 +1,8 @@
 digidist
 --------
 
-monosine
---------
+all instruments
+---------------
 
 * Add slide between notes
 * Make attack, decay, slide length adjustable
