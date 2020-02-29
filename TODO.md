@@ -1,6 +1,3 @@
-digidist
---------
-
 all instruments
 ---------------
 
