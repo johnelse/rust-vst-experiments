@@ -10,12 +10,13 @@ use vst::plugin::{Category, CanDo, Info, Plugin};
 
 use vstutils::generator::{Generator, Oscillator};
 use vstutils::maths::{midi_pitch_to_freq};
+use vstutils::notetracker::NoteTracker;
 use vstutils::targetval::{Rate, TargetVal};
 
 struct MonoSine {
     level:      TargetVal<f32>,
     velocity:   TargetVal<f32>,
-    note:       Option<u8>,
+    tracker:    NoteTracker,
     oscillator: Oscillator,
 }
 
@@ -32,7 +33,7 @@ impl MonoSine {
     }
 
     fn note_on(&mut self, note: u8, velocity: u8) {
-        self.note = Some(note);
+        self.tracker.note_on(note);
 
         let target = velocity as f32 / 127.0;
         self.velocity.set_target(target);
@@ -45,10 +46,18 @@ impl MonoSine {
     }
 
     fn note_off(&mut self, note: u8) {
-        if self.note == Some(note) {
-            self.note = None;
+        self.tracker.note_off(note);
+
+        if self.get_current_note() == None {
             self.velocity.set_target(0.0);
         }
+    }
+
+    fn get_current_note(&self) -> Option<u8> {
+        self.tracker
+            .get_playing_notes()
+            .get(0)
+            .map(|note| note.to_owned())
     }
 }
 
@@ -61,7 +70,7 @@ impl Default for MonoSine {
             velocity:   TargetVal::new(  Rate::Absolute(0.0)
                                        , Rate::Absolute(0.0)
                                        , 0.0),
-            note:       None,
+            tracker:    NoteTracker::new(1, 9),
             oscillator: Oscillator::sine(44100.0),
         }
     }
@@ -130,8 +139,8 @@ impl Plugin for MonoSine {
     }
 
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
-        if *self.velocity.get_value() > 0.0 || self.note != None {
-            if let Some(note) = self.note {
+        if *self.velocity.get_value() > 0.0 || self.get_current_note() != None {
+            if let Some(note) = self.get_current_note() {
                 self.oscillator.set_frequency(midi_pitch_to_freq(note));
             }
 
