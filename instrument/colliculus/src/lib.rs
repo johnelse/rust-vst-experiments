@@ -61,8 +61,7 @@ impl Colliculus {
         }
     }
 
-    fn get_current_note(&self) -> Option<u8>
-    {
+    fn get_current_note(&self) -> Option<u8> {
         self.tracker
             .get_playing_notes()
             .get(0)
