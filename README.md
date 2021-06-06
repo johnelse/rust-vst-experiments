@@ -1,3 +1,3 @@
-[![Build Status](https://travis-ci.org/johnelse/rust-vst-experiments.svg?branch=master)](https://travis-ci.org/johnelse/rust-vst-experiments)
+[![Build Status](https://github.com/johnelse/rust-vst-experiments/actions/workflows/workflow.yml/badge.svg)](https://github.com/johnelse/rust-vst-experiments/actions)
 
 Rust VST experiments
